@@ -83,8 +83,10 @@ void rrsched() {
   {
     current->tick_count = 0;
     current->status = READY;
-    insert_to_ready_queue(current);
-    schedule();
+    insert_to_ready_queue(current, 1);
+    
+    schedule(1);
+    sprint("rrshed\n");
   }
   else
     current->tick_count ++;

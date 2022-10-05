@@ -70,9 +70,10 @@ int s_start(void) {
   sprint("Switch to user mode...\n");
   // the application code (elf) is first loaded into memory, and then put into execution
   // added @lab3_1
-  insert_to_ready_queue( load_user_program() );
-  schedule();
+  insert_to_ready_queue( load_user_program() , 1);
 
+  schedule(0);
+  
   // we should never reach here.
   return 0;
 }

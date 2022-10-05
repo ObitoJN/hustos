@@ -10,7 +10,8 @@ process* ready_queue_head = NULL;
 //
 // insert a process, proc, into the END of ready queue.
 //
-void insert_to_ready_queue( process* proc ) {
+void insert_to_ready_queue( process* proc , uint64 out) {
+  if(out != 0)
   sprint( "going to insert process %d to ready queue.\n", proc->pid );
   // if the queue is empty in the beginning
   if( ready_queue_head == NULL ){
@@ -42,7 +43,7 @@ void insert_to_ready_queue( process* proc ) {
 // ready_queue_insert), and then call schedule().
 //
 extern process procs[NPROC];
-void schedule() {
+void schedule(int x) {
   if ( !ready_queue_head ){
     // by default, if there are no ready process, and all processes are in the status of
     // FREE and ZOMBIE, we should shutdown the emulated RISC-V machine.
@@ -68,6 +69,17 @@ void schedule() {
   ready_queue_head = ready_queue_head->queue_next;
 
   current->status = RUNNING;
-  sprint( "going to schedule process %d to run.\n", current->pid );
+  if(x == 3)
+  {
+    if(current->pid)
+    sprint( "going to schedule process %d to run.\n", current->pid);
+  }
+  else if(x == 2)
+  {
+    sprint( "going to insert process %d to ready queue.\n", current->pid );
+    sprint( "going to schedule process %d to run.\n", current->pid);
+  }
+  else 
+  sprint( "going to schedule process %d to run.\n", current->pid);
   switch_to( current );
 }

@@ -207,14 +207,67 @@ int do_fork( process* parent)
           child->total_mapped_region++;
           break;
         }
-        
+        case DATA_SEGMENT:
+        for(int j = 0; j < parent->mapped_info[i].npages; j++ )
+        {
+            uint64 addr = lookup_pa(parent->pagetable, parent->mapped_info[i].va + j*PGSIZE);
+            char *newaddr = alloc_page(); memcpy(newaddr, (void *)addr, PGSIZE);
+            user_vm_map(child->pagetable, parent->mapped_info[i].va+j*PGSIZE, PGSIZE, (uint64)newaddr, prot_to_type(PROT_WRITE | PROT_READ, 1));
+        }
+
+        // after mapping, register the vm region (do not delete codes below!)
+        child->mapped_info[child->total_mapped_region].va = parent->mapped_info[i].va;
+        child->mapped_info[child->total_mapped_region].npages = 
+          parent->mapped_info[i].npages;
+        child->mapped_info[child->total_mapped_region].seg_type = DATA_SEGMENT;
+        child->total_mapped_region++;
+        break;
     }
   }
-
   child->status = READY;
   child->trapframe->regs.a0 = 0;
   child->parent = parent;
-  insert_to_ready_queue( child );
+  insert_to_ready_queue( child , 1);
+  //sprint("do fork\n");
+  //schedule();
 
   return child->pid;
+}
+
+int wait(int pid)
+{
+  if(pid == -1)
+  {
+    int flag = 0;
+    for(int i = 0; i < NPROC; i++)
+      if(procs[i].parent == current)
+      {
+        flag = 1;
+        if(procs[i].status == ZOMBIE)
+        {
+          procs[i].status = FREE;
+          return i;
+        }
+      }
+    if(flag)
+      return -2;
+    else
+      return -1;
+  }
+  else if (pid < NPROC)
+  {
+    if (procs[pid].parent != current)
+      return -1;
+    else
+    {
+      if (procs[pid].status == ZOMBIE)
+      {
+        procs[pid].status = FREE;
+        return pid;
+      }
+      else
+        return -2;
+    }
+  }
+  return -1;
 }
